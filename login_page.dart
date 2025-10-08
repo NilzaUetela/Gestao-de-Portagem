@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'admin_page.dart';
 import 'dashboard_page.dart';
+import 'caixa_dashboard_page.dart'; // importa a tela dos caixas
 
 class LoginPage extends StatefulWidget {
   @override
@@ -25,7 +26,29 @@ class _LoginPageState extends State<LoginPage> {
       "nome": "Nilza Wetela",
       "email": "nilza@gmail.com",
       "saldo": 500.0,
-      "tipo": "user"
+      "tipo": "user",
+      "historico": []
+    },
+    {
+      "cartao": "3333",
+      "nome": "Caixa Central",
+      "email": "caixacentral@app.com",
+      "saldo": 0.0,
+      "tipo": "caixa"
+    },
+    {
+      "cartao": "4444",
+      "nome": "Caixa Sul",
+      "email": "caixasul@app.com",
+      "saldo": 0.0,
+      "tipo": "caixa"
+    },
+    {
+      "cartao": "5555",
+      "nome": "Caixa Norte",
+      "email": "caixanorte@app.com",
+      "saldo": 0.0,
+      "tipo": "caixa"
     },
   ];
 
@@ -44,11 +67,20 @@ class _LoginPageState extends State<LoginPage> {
           context,
           MaterialPageRoute(builder: (context) => AdminPage()),
         );
-      } else {
+      } else if (usuario["tipo"] == "user") {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => DashboardPage(usuario: usuario),
+          ),
+        );
+      } else if (usuario["tipo"] == "caixa") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CaixaDashboardPage(
+              nomeCaixa: usuario["nome"], // agora abre o nome correto
+            ),
           ),
         );
       }

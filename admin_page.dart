@@ -26,10 +26,16 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
 
   Map<String, dynamic>? usuarioSelecionado;
 
+  // Relatórios recebidos dos caixas
+  List<Map<String, dynamic>> relatorios = [];
+
+  String filtroRelatorio = "Diário";
+  final List<String> periodos = ["Diário", "Semanal", "Mensal"];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -142,6 +148,49 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
     );
   }
 
+  Widget _buildRelatorios() {
+    List<Map<String, dynamic>> relatoriosFiltrados = relatorios; // Aqui depois você aplica filtro real
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.all(8),
+          child: DropdownButton<String>(
+            value: filtroRelatorio,
+            items: periodos.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+            onChanged: (v) {
+              setState(() {
+                filtroRelatorio = v!;
+              });
+            },
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              border: TableBorder.all(color: Colors.grey),
+              columns: const [
+                DataColumn(label: Text("Caixa")),
+                DataColumn(label: Text("Classe")),
+                DataColumn(label: Text("Qtd Veículos")),
+                DataColumn(label: Text("Valor Total")),
+              ],
+              rows: relatoriosFiltrados.map((r) {
+                return DataRow(cells: [
+                  DataCell(Text(r["caixa"])),
+                  DataCell(Text(r["classe"].toString())),
+                  DataCell(Text(r["qtd"].toString())),
+                  DataCell(Text("MZN ${r["valor"].toStringAsFixed(2)}")),
+                ]);
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,136 +205,149 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
             Tab(text: "Visualizar"),
             Tab(text: "Adicionar"),
             Tab(text: "Recarregar"),
+            Tab(text: "Relatórios"),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // === Visualizar Usuário ===
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _buildAdminHeader(),
-                _buildTextField(_numeroCartaoController, "Número do Cartão"),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _buscarUsuario,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
-                  child: Text("Buscar Usuário"),
-                ),
-                SizedBox(height: 20),
-                if (usuarioSelecionado != null && usuarioSelecionado!.isNotEmpty)
-                  Expanded(
-                    child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 3,
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: ListView(
-                          children: [
-                            Text("Nome: ${usuarioSelecionado!['nome']}"),
-                            Text("BI: ${usuarioSelecionado!['bi']}"),
-                            Text("Morada: ${usuarioSelecionado!['morada']}"),
-                            Text("Matrícula: ${usuarioSelecionado!['matricula']}"),
-                            Text("Modelo: ${usuarioSelecionado!['modelo']}"),
-                            Text("Email: ${usuarioSelecionado!['email']}"),
-                            Text("Contacto: ${usuarioSelecionado!['contacto']}"),
-                            Text("Saldo: MZN ${usuarioSelecionado!['saldo']}"),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Text("Nenhum usuário encontrado."),
-              ],
-            ),
-          ),
+          // Visualizar
+          _buildVisualizar(),
+          // Adicionar
+          _buildAdicionar(),
+          // Recarregar
+          _buildRecarregar(),
+          // Relatórios
+          _buildRelatorios(),
+        ],
+      ),
+    );
+  }
 
-          // === Adicionar Usuário ===
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: ListView(
-              children: [
-                _buildAdminHeader(),
-                _buildTextField(_nomeController, "Nome Completo"),
-                _buildTextField(_biController, "Bilhete de Identidade"),
-                _buildTextField(_moradaController, "Morada"),
-                _buildTextField(_matriculaController, "Matrícula do Carro"),
-                _buildTextField(_modeloController, "Modelo do Carro"),
-                _buildTextField(_emailController, "Email"),
-                _buildTextField(_contactoController, "Contacto"),
-                _buildTextField(_cartaoController, "Número do Cartão"),
-                _buildTextField(_saldoController, "Saldo Inicial", type: TextInputType.number),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _adicionarUsuario,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
-                  child: Text("Adicionar Usuário"),
-                ),
-              ],
-            ),
+  Widget _buildVisualizar() {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildAdminHeader(),
+          _buildTextField(_numeroCartaoController, "Número do Cartão"),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: _buscarUsuario,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+            child: Text("Buscar Usuário"),
           ),
-
-          // === Recarregar Saldo ===
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: ListView(
-              children: [
-                _buildAdminHeader(),
-                _buildTextField(_numeroCartaoController, "Número do Cartão"),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _buscarUsuario,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
-                  child: Text("Buscar Usuário"),
-                ),
-                SizedBox(height: 20),
-                if (usuarioSelecionado != null && usuarioSelecionado!.isNotEmpty) ...[
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    color: Colors.green[50],
-                    elevation: 2,
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Nome: ${usuarioSelecionado!['nome']}", style: TextStyle(fontSize: 16)),
-                          Text("Saldo Atual: MZN ${usuarioSelecionado!['saldo']}", style: TextStyle(fontSize: 16)),
-                          SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
-                            value: _carteiraSelecionada,
-                            decoration: InputDecoration(
-                              labelText: "Carteira Móvel",
-                              filled: true,
-                              fillColor: Colors.green[50],
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            items: ["Emola", "M-Pesa", "Ponto 24"].map((e) {
-                              return DropdownMenuItem(value: e, child: Text(e));
-                            }).toList(),
-                            onChanged: (value) => setState(() => _carteiraSelecionada = value!),
-                          ),
-                          SizedBox(height: 12),
-                          _buildTextField(_valorRecarregarController, "Valor a recarregar", type: TextInputType.number),
-                          SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: _recarregarSaldo,
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
-                            child: Center(child: Text("Recarregar")),
-                          ),
-                        ],
-                      ),
-                    ),
+          SizedBox(height: 20),
+          if (usuarioSelecionado != null && usuarioSelecionado!.isNotEmpty)
+            Expanded(
+              child: Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 3,
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: ListView(
+                    children: [
+                      Text("Nome: ${usuarioSelecionado!['nome']}"),
+                      Text("BI: ${usuarioSelecionado!['bi']}"),
+                      Text("Morada: ${usuarioSelecionado!['morada']}"),
+                      Text("Matrícula: ${usuarioSelecionado!['matricula']}"),
+                      Text("Modelo: ${usuarioSelecionado!['modelo']}"),
+                      Text("Email: ${usuarioSelecionado!['email']}"),
+                      Text("Contacto: ${usuarioSelecionado!['contacto']}"),
+                      Text("Saldo: MZN ${usuarioSelecionado!['saldo']}"),
+                    ],
                   ),
-                ] else
-                  Text("Nenhum usuário selecionado."),
-              ],
-            ),
+                ),
+              ),
+            )
+          else
+            Text("Nenhum usuário encontrado."),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdicionar() {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: ListView(
+        children: [
+          _buildAdminHeader(),
+          _buildTextField(_nomeController, "Nome Completo"),
+          _buildTextField(_biController, "Bilhete de Identidade"),
+          _buildTextField(_moradaController, "Morada"),
+          _buildTextField(_matriculaController, "Matrícula do Carro"),
+          _buildTextField(_modeloController, "Modelo do Carro"),
+          _buildTextField(_emailController, "Email"),
+          _buildTextField(_contactoController, "Contacto"),
+          _buildTextField(_cartaoController, "Número do Cartão"),
+          _buildTextField(_saldoController, "Saldo Inicial", type: TextInputType.number),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _adicionarUsuario,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+            child: Text("Adicionar Usuário"),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecarregar() {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: ListView(
+        children: [
+          _buildAdminHeader(),
+          _buildTextField(_numeroCartaoController, "Número do Cartão"),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: _buscarUsuario,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+            child: Text("Buscar Usuário"),
+          ),
+          SizedBox(height: 20),
+          if (usuarioSelecionado != null && usuarioSelecionado!.isNotEmpty) ...[
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              color: Colors.green[50],
+              elevation: 2,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Nome: ${usuarioSelecionado!['nome']}", style: TextStyle(fontSize: 16)),
+                    Text("Saldo Atual: MZN ${usuarioSelecionado!['saldo']}", style: TextStyle(fontSize: 16)),
+                    SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _carteiraSelecionada,
+                      decoration: InputDecoration(
+                        labelText: "Carteira Móvel",
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: ["Emola", "M-Pesa", "Ponto 24"].map((e) {
+                        return DropdownMenuItem(value: e, child: Text(e));
+                      }).toList(),
+                      onChanged: (value) => setState(() => _carteiraSelecionada = value!),
+                    ),
+                    SizedBox(height: 12),
+                    _buildTextField(_valorRecarregarController, "Valor a recarregar", type: TextInputType.number),
+                    SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _recarregarSaldo,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+                      child: Center(child: Text("Recarregar")),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ] else
+            Text("Nenhum usuário selecionado."),
         ],
       ),
     );

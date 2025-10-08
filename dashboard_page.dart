@@ -22,7 +22,6 @@ class _DashboardPageState extends State<DashboardPage> {
     saldo = widget.usuario["saldo"];
   }
 
-  // Corrigido para aceitar 3 parâmetros
   void atualizarSaldo(double valor, String carteira, String numero) {
     setState(() {
       saldo += valor;
@@ -76,12 +75,6 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.green[200],
-              child: Icon(Icons.person, size: 60, color: Colors.white),
-            ),
-            const SizedBox(height: 20),
             Text(
               widget.usuario["nome"],
               style: TextStyle(
@@ -136,7 +129,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 }),
                 actionButton("Usar Portagem", Icons.directions_car, () {
-                  usarPortagem(100); // valor fixo (ex: 100 MT)
+                  usarPortagem(30); // valor padrão da portagem
                 }),
               ],
             ),
